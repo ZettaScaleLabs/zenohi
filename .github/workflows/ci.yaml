@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref && github.ref || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  CARGO_REGISTRIES_CRATES_IO_PROTOCOL: sparse
+  CARGO_PROFILE_DEV_DEBUG: false
+
+jobs:
+  check:
+    name: Lints on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+
+    steps:
+      - name: Clone this repository
+        uses: actions/checkout@v4
+
+      - name: Update Stable Rust toolchain
+        run: rustup update stable
+
+      - name: Make sure necessary tools are installed
+        run: rustup component add clippy rustfmt
+
+      - name: Setup rust-cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          cache-bin: false
+
+      - name: Install latest cargo-machete
+        uses: taiki-e/install-action@cargo-machete
+
+      - name: Install latest taplo
+        uses: taiki-e/install-action@taplo
+
+      - name: Check Rust formatting
+        run: rustfmt --check --config "unstable_features=true,imports_granularity=Crate,group_imports=StdExternalCrate,skip_children=true" $(git ls-files '*.rs')
+
+      - name: Run clippy on the workspace
+        run: cargo clippy --all-targets --all-features -- --deny warnings
+
+      - name: Check unused dependencies
+        run: cargo machete
+
+      - name: Check TOML formatting
+        if: ${{ !contains(matrix.os, 'windows') }}
+        run: taplo fmt --check --diff

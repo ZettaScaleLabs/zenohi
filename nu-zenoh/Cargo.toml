@@ -1,0 +1,22 @@
+#
+# Copyright (c) 2025 ZettaScale Technology All rights reserved.
+#
+# This software is the confidential and proprietary information of ZettaScale Technology.
+#
+[package]
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+name = "nu-zenoh"
+repository.workspace = true
+version.workspace = true
+
+[dependencies]
+flume = { workspace = true }
+nu-engine = { workspace = true }
+nu-json = { workspace = true }
+nu-protocol = { workspace = true }
+tempfile = { workspace = true }
+tracing-subscriber = { workspace = true }
+zenoh = { workspace = true }

@@ -1,0 +1,19 @@
+[package]
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+name = "zenohi"
+repository.workspace = true
+version.workspace = true
+
+[dependencies]
+clap = { workspace = true, features = ["derive"] }
+ctrlc = { workspace = true }
+nu-cli = { workspace = true }
+nu-cmd-extra = { workspace = true }
+nu-cmd-lang = { workspace = true }
+nu-command = { workspace = true }
+nu-explore = { workspace = true }
+nu-protocol = { workspace = true }
+nu-zenoh = { workspace = true }

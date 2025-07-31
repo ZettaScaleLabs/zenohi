@@ -1,0 +1,33 @@
+[workspace]
+members = ["nu-zenoh", "zenohi"]
+resolver = "3"
+
+[workspace.package]
+authors = ["Mahmoud Mazouz <hello@fuzzypixelz.com>"]
+edition = "2024"
+homepage = "http://zenoh.io"
+license = "EPL-2.0 OR Apache-2.0"
+repository = "https://github.com/ZettaScaleLabs/zenohi"
+version = "0.1.0"
+
+[workspace.dependencies]
+clap = "4.5.42"
+ctrlc = "3.4.7"
+flume = "0.11.1"
+nu-cli = "0.106.1"
+nu-cmd-extra = "0.106.1"
+nu-cmd-lang = "0.106.1"
+nu-command = "0.106.1"
+nu-engine = "0.106.1"
+nu-explore = "0.106.1"
+nu-json = "0.106.1"
+nu-protocol = "0.106.1"
+nu-zenoh = { path = "nu-zenoh" }
+tempfile = "3.20.0"
+tracing-subscriber = "0.3.19"
+zenoh = { git = "https://github.com/eclipse-zenoh/zenoh.git", features = [
+  "internal",
+  "plugins",
+  "shared-memory",
+  "unstable",
+] }
