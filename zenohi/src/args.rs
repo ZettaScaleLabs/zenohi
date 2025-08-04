@@ -44,4 +44,11 @@ pub(crate) struct Args {
         conflicts_with_all(["script", "commands"])
     )]
     pub execute: Option<String>,
+    #[arg(
+        long = "internal-options",
+        help = "Enable internal Zenoh options and commands"
+    )]
+    pub internal_options: bool,
+    #[arg(long = "no-default-session", help = "Don't open a 'default' session")]
+    pub no_default_session: bool,
 }

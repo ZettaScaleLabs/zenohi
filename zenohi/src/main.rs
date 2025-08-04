@@ -29,7 +29,12 @@ fn main() {
     let entire_start_time = Instant::now();
     let args = args::Args::parse();
 
-    let (mut engine_state, mut stack) = default_context();
+    let options = nu_zenoh::Config {
+        internal_options: args.internal_options,
+        no_default_session: args.no_default_session,
+    };
+
+    let (mut engine_state, mut stack) = nu_context(options);
     ctrlc_protection(&mut engine_state);
 
     nu_cli::eval_source(
@@ -91,7 +96,7 @@ fn main() {
     }
 }
 
-fn default_context() -> (EngineState, Stack) {
+fn nu_context(options: nu_zenoh::Config) -> (EngineState, Stack) {
     let config = Config {
         show_banner: BannerKind::None,
         ..Default::default()
@@ -105,7 +110,7 @@ fn default_context() -> (EngineState, Stack) {
     engine_state = nu_cmd_extra::add_extra_command_context(engine_state);
     engine_state = nu_cli::add_cli_context(engine_state);
     engine_state = nu_explore::add_explore_context(engine_state);
-    engine_state = nu_zenoh::add_zenoh_context(engine_state);
+    engine_state = nu_zenoh::add_zenoh_context(engine_state, options);
     {
         let delta = {
             let mut working_set = nu_protocol::engine::StateWorkingSet::new(&engine_state);

@@ -20,7 +20,7 @@ use nu_protocol::{
     engine::{EngineState, StateWorkingSet},
     LabeledError,
 };
-use zenoh::{Config, Session, Wait};
+use zenoh::{internal::runtime::Runtime, Session, Wait};
 
 mod call_ext2;
 mod cmd;
@@ -28,17 +28,29 @@ mod conv;
 mod interruptible_channel;
 mod signature_ext;
 
+#[derive(Debug, Clone)]
+pub struct Config {
+    pub internal_options: bool,
+    pub no_default_session: bool,
+}
+
 /// Adds extra context (e.g. aliases) as Nu source code
 ///
 /// This should be called after [`crate::add_zenoh_context`].
 pub const ZENOH_CONTEXT_EXTRAS: &[u8] = include_bytes!("nu/extras.nu");
 
 /// Adds all `zenoh *` commands to the given [`nu_protocol::engine::EngineState`].
-pub fn add_zenoh_context(mut engine_state: EngineState) -> EngineState {
+pub fn add_zenoh_context(mut engine_state: EngineState, options: Config) -> EngineState {
     let delta = {
         let mut working_set = StateWorkingSet::new(&engine_state);
 
-        let state = State::new();
+        let state = State::new(options.clone());
+
+        if options.internal_options {
+            working_set.add_decl(Box::new(cmd::runtime::list::List::new(state.clone())));
+            working_set.add_decl(Box::new(cmd::runtime::open::Open::new(state.clone())));
+            working_set.add_decl(Box::new(cmd::runtime::close::Close::new(state.clone())));
+        }
 
         working_set.add_decl(Box::new(cmd::put::Put::new(state.clone())));
         working_set.add_decl(Box::new(cmd::delete::Delete::new(state.clone())));
@@ -71,21 +83,27 @@ pub fn add_zenoh_context(mut engine_state: EngineState) -> EngineState {
 
 #[derive(Clone)]
 struct State {
+    options: Config,
     sessions: Arc<RwLock<HashMap<String, Session>>>,
+    runtimes: Arc<RwLock<HashMap<String, Runtime>>>,
 }
 
 impl State {
     const DEFAULT_SESSION_NAME: &str = "default";
 
-    fn new() -> Self {
+    fn new(options: Config) -> Self {
         let mut sessions = HashMap::new();
-        let default_session = zenoh::open(Config::default())
-            .wait()
-            .expect("could not open default session");
-        sessions.insert(Self::DEFAULT_SESSION_NAME.to_string(), default_session);
+        if !options.no_default_session {
+            let default_session = zenoh::open(zenoh::Config::default())
+                .wait()
+                .expect("could not open default session");
+            sessions.insert(Self::DEFAULT_SESSION_NAME.to_string(), default_session);
+        }
 
         Self {
+            options,
             sessions: Arc::new(RwLock::new(sessions)),
+            runtimes: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 }

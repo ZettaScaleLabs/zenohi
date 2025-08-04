@@ -19,6 +19,7 @@ pub(crate) mod keyexpr;
 pub(crate) mod log_path;
 pub(crate) mod put;
 pub(crate) mod reply;
+pub(crate) mod runtime;
 pub(crate) mod scout;
 pub(crate) mod session;
 pub(crate) mod sub;

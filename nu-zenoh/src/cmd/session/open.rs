@@ -16,9 +16,9 @@ use std::path::PathBuf;
 use nu_engine::CallExt;
 use nu_protocol::{
     engine::{Call, Command, EngineState, Stack},
-    PipelineData, ShellError, Signature, SyntaxShape, Type, Value,
+    LabeledError, PipelineData, ShellError, Signature, SyntaxShape, Type, Value,
 };
-use zenoh::Wait;
+use zenoh::{session, Wait};
 
 use crate::{call_ext2::CallExt2, conv, signature_ext::SignatureExt, State};
 
@@ -39,7 +39,7 @@ impl Command for Open {
     }
 
     fn signature(&self) -> Signature {
-        Signature::build(self.name())
+        let sig = Signature::build(self.name())
             .session()
             .zenoh_category()
             .input_output_type(Type::Nothing, Type::Nothing)
@@ -53,7 +53,13 @@ impl Command for Open {
                 "config",
                 SyntaxShape::Record(vec![]),
                 "Zenoh configuration object (see https://github.com/eclipse-zenoh/zenoh/blob/main/DEFAULT_CONFIG.json5)",
-            )
+            );
+
+        if self.state.options.internal_options {
+            sig.named("runtime", SyntaxShape::String, "Runtime name", None)
+        } else {
+            sig
+        }
     }
 
     fn description(&self) -> &str {
@@ -67,17 +73,24 @@ impl Command for Open {
         call: &Call,
         _input: PipelineData,
     ) -> Result<PipelineData, ShellError> {
-        let file_path = call.get_flag::<PathBuf>(engine_state, stack, "file")?;
+        // FIXME(fuzzypixelz): refactor this (see 'zenoh runtime open')
+
+        let file_path = call.get_flag::<PathBuf>(engine_state, stack, "config-file")?;
+        let runtime_name = call.get_flag::<String>(engine_state, stack, "runtime")?;
         let config_record = call.opt::<Value>(engine_state, stack, 0)?;
 
-        let config = match (file_path.as_ref(), config_record.as_ref()) {
-            (Some(file_path), None) => zenoh::Config::from_file(file_path).map_err(|e| {
+        let config = match (
+            file_path.as_ref(),
+            config_record.as_ref(),
+            runtime_name.as_ref(),
+        ) {
+            (Some(file_path), None, None) => zenoh::Config::from_file(file_path).map_err(|e| {
                 nu_protocol::LabeledError::new("Failed to load config file").with_label(
                     format!("Could not read config from {}: {}", file_path.display(), e),
                     call.head,
                 )
             })?,
-            (None, Some(config_record)) => match config_record {
+            (None, Some(config_record), None) => match config_record {
                 val @ Value::Record { .. } => {
                     let json_value =
                         conv::value_to_json_value(engine_state, val, call.head, false)?;
@@ -96,18 +109,46 @@ impl Command for Open {
                     });
                 }
             },
-            (Some(_), Some(_)) => {
+            (None, None, Some(runtime_name)) => {
+                let runtime = self
+                    .state
+                    .runtimes
+                    .read()
+                    .unwrap()
+                    .get(runtime_name)
+                    .ok_or_else(|| {
+                        LabeledError::new(format!("runtime '{runtime_name}' was not found"))
+                    })?
+                    .clone();
+
+                let session_name = call.session(engine_state, stack)?;
+                let mut sessions = self.state.sessions.write().unwrap();
+                if let Some(sess) = sessions.remove(&session_name) {
+                    sess.close().wait().map_err(|e| {
+                        nu_protocol::LabeledError::new(
+                            "Failed to reopen Zenoh session '{session_name}'",
+                        )
+                        .with_label(format!("Could not close Zenoh session: {e}"), call.head)
+                    })?
+                }
+                let new_session = session::init(runtime).wait().map_err(|e| {
+                    nu_protocol::LabeledError::new("Failed to open Zenoh session")
+                        .with_label(format!("Could not establish Zenoh session: {e}"), call.head)
+                })?;
+                sessions.insert(session_name, new_session);
+                return Ok(PipelineData::Value(Value::nothing(call.head), None));
+            }
+            (None, None, None) => zenoh::Config::default(),
+            _ => {
                 return Err(ShellError::GenericError {
                     error: "Conflicting arguments".to_string(),
-                    msg: "Cannot specify both --file and config record".to_string(),
+                    msg: "Only one of RECORD, --config-file or --runtime can be specified"
+                        .to_string(),
                     span: Some(call.head),
-                    help: Some(
-                        "Use either --file <path> or provide a config record, not both".to_string(),
-                    ),
+                    help: None,
                     inner: vec![],
                 });
             }
-            (None, None) => zenoh::Config::default(),
         };
 
         let session_name = call.session(engine_state, stack)?;
