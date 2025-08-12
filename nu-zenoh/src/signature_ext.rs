@@ -65,7 +65,8 @@ impl SignatureExt for Signature {
     }
 
     fn publication(self) -> Self {
-        self.named("priority", SyntaxShape::String, "Priority (0-7)", None)
+        self.keyexpr()
+            .named("priority", SyntaxShape::String, "Priority (0-7)", None)
             .named(
                 "congestion-control",
                 SyntaxShape::Int,

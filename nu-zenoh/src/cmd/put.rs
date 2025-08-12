@@ -13,12 +13,12 @@
 //
 use nu_engine::CallExt;
 use nu_protocol::{
+    PipelineData, ShellError, Signature, SyntaxShape,
     engine::{Call, Command, EngineState, Stack},
-    PipelineData, ShellError, Signature,
 };
 use zenoh::Wait;
 
-use crate::{call_ext2::CallExt2, signature_ext::SignatureExt, State};
+use crate::{State, call_ext2::CallExt2, signature_ext::SignatureExt};
 
 #[derive(Clone)]
 pub(crate) struct Put {
@@ -37,7 +37,10 @@ impl Command for Put {
     }
 
     fn signature(&self) -> Signature {
-        Signature::build(self.name()).publication().encoding()
+        Signature::build(self.name())
+            .publication()
+            .encoding()
+            .required("payload", SyntaxShape::String, "Publication payload")
     }
 
     fn description(&self) -> &str {
