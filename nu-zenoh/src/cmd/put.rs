@@ -38,6 +38,8 @@ impl Command for Put {
 
     fn signature(&self) -> Signature {
         Signature::build(self.name())
+            .session()
+            .zenoh_category()
             .publication()
             .encoding()
             .required("payload", SyntaxShape::String, "Publication payload")
