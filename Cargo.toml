@@ -1,5 +1,5 @@
 [workspace]
-members = ["nu-zenoh", "zenohi"]
+members = ["nu-zenoh", "zesh"]
 resolver = "3"
 
 [workspace.package]
@@ -7,7 +7,7 @@ authors = ["Mahmoud Mazouz <hello@fuzzypixelz.com>"]
 edition = "2024"
 homepage = "http://zenoh.io"
 license = "EPL-2.0 OR Apache-2.0"
-repository = "https://github.com/ZettaScaleLabs/zenohi"
+repository = "https://github.com/ZettaScaleLabs/nu-zenoh"
 version = "0.1.0"
 
 [workspace.dependencies]

@@ -1,11 +1,13 @@
-# `zenohi`: Zenoh Interactive Environment
+# `nu-zenoh`
 
-An experimental REPL for interacting with [Zenoh](https://zenoh.io/) systems
-built on [Nushell](https://www.nushell.sh/). To get started:
+## `zesh`: Zenoh Shell
+
+Pronounced _tzee shell_, `zesh` is an experimental shell built with [Nushell](https://www.nushell.sh/)
+to provide an interactive environment for debugging [Zenoh](https://zenoh.io/) systems. To get started:
 
 ```bash
-cargo install --git https://github.com/ZettaScaleLabs/zenohi.git zenohi
-zenohi
+cargo install --git https://github.com/ZettaScaleLabs/nu-zenoh.git zesh
+zesh
 ```
 
 A REPL instance supports multiple Zenoh sessions each identified by a name (string).
@@ -19,7 +21,7 @@ the argument `-s, --session` is supplied:
 ├───┼─────────┼──────────────────────────────────┤
 │ 0 │ default │ 41aa8953ad1abda60a9149e25c54067d │
 ╰───┴─────────┴──────────────────────────────────╯
-> zenoh zid -s default
+> zenoh zid
 41aa8953ad1abda60a9149e25c54067d
 ```
 

@@ -7224,21 +7224,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "zenohi"
-version = "0.1.0"
-dependencies = [
- "clap",
- "ctrlc",
- "nu-cli",
- "nu-cmd-extra",
- "nu-cmd-lang",
- "nu-command",
- "nu-explore",
- "nu-protocol",
- "nu-zenoh",
-]
-
-[[package]]
 name = "zerocopy"
 version = "0.8.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7316,6 +7301,21 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.104",
+]
+
+[[package]]
+name = "zesh"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "ctrlc",
+ "nu-cli",
+ "nu-cmd-extra",
+ "nu-cmd-lang",
+ "nu-command",
+ "nu-explore",
+ "nu-protocol",
+ "nu-zenoh",
 ]
 
 [[package]]
