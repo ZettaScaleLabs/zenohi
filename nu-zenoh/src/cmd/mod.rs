@@ -16,6 +16,7 @@ pub(crate) mod delete;
 pub(crate) mod get;
 pub(crate) mod info;
 pub(crate) mod keyexpr;
+pub(crate) mod liveliness;
 pub(crate) mod log_path;
 pub(crate) mod put;
 pub(crate) mod reply;
