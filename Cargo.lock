@@ -2963,6 +2963,7 @@ dependencies = [
  "nu-engine",
  "nu-json",
  "nu-protocol",
+ "serde",
  "tempfile",
  "tracing-subscriber",
  "zenoh",
