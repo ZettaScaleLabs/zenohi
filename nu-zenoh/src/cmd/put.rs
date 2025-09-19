@@ -13,12 +13,12 @@
 //
 use nu_engine::CallExt;
 use nu_protocol::{
-    engine::{Call, Command, EngineState, Stack},
     PipelineData, ShellError, Signature, SyntaxShape,
+    engine::{Call, Command, EngineState, Stack},
 };
 use zenoh::Wait;
 
-use crate::{call_ext2::CallExt2, signature_ext::SignatureExt, State};
+use crate::{State, call_ext2::CallExt2, signature_ext::SignatureExt};
 
 #[derive(Clone)]
 pub(crate) struct Put {
@@ -42,7 +42,11 @@ impl Command for Put {
             .zenoh_category()
             .publication()
             .encoding()
-            .required("payload", SyntaxShape::String, "Publication payload")
+            .required(
+                "payload",
+                SyntaxShape::OneOf(vec![SyntaxShape::String, SyntaxShape::Binary]),
+                "Publication payload",
+            )
     }
 
     fn description(&self) -> &str {
@@ -57,7 +61,7 @@ impl Command for Put {
         _input: PipelineData,
     ) -> Result<PipelineData, ShellError> {
         let key = call.req::<String>(engine_state, stack, 0)?;
-        let value = call.req::<String>(engine_state, stack, 1)?;
+        let value = call.req::<Vec<u8>>(engine_state, stack, 1)?;
 
         self.state
             .with_session(&call.session(engine_state, stack)?, |sess| {
