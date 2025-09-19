@@ -29,5 +29,6 @@ zenoh = { git = "https://github.com/eclipse-zenoh/zenoh.git", features = [
   "internal",
   "plugins",
   "shared-memory",
+  "stats",
   "unstable",
 ] }
