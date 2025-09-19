@@ -43,7 +43,8 @@ impl LogPath {
 
         let fmt = tracing_subscriber::fmt::layer()
             .with_writer(File::create(&log_path).unwrap())
-            .with_ansi(false);
+            .with_ansi(false)
+            .with_span_events(FmtSpan::ACTIVE);
 
         tracing_subscriber::registry()
             .with(env_filter)
